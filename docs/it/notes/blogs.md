@@ -1,0 +1,9 @@
+# 博客搭建
+
+## PicGo + 七牛云图床
+
+[PicGo](https://molunerfinn.com/PicGo/) 一个用于快速上传图片并获取图片 URL 链接的工具。
+
+![WX20211020-172523](http://msnewlifefitness.com/img/WX20211020-172523.png)
+
+不同的存储区域ID可以查询[七牛云-开发者中心-存储区域](https://developer.qiniu.com/kodo/1671/region-endpoint-fq)

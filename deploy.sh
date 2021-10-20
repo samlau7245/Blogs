@@ -23,3 +23,5 @@ git push -f git@github.com:samlau7245/blogs.git master:gh-pages
 cd -
 
 # git@github.com:samlau7245/blogs.github.io.git
+
+# chmod 777 ./deploy.sh  #使脚本具有执行权限

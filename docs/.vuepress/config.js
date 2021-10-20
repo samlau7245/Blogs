@@ -12,24 +12,7 @@ module.exports = {
     logo: '/favicon.png',
 
     // 顶部导航栏
-    nav: [
-      {
-        text: '首页',
-        link: '/',
-      },
-      {
-        text: '前端',
-        items: [
-          {
-            text: '语言学习',
-            items: [
-              { text: 'foo', link: '/foo/' },
-              { text: 'bar', link: '/bar/' },
-            ],
-          }
-        ],
-      },
-    ],
+    nav: getNavBar(),
 
     // 侧边栏
     sidebar: getSider(),
@@ -49,25 +32,50 @@ module.exports = {
 // 侧边栏结构
 function getSider() {
   return {
-    '/foo/': [{
-      title: 'items01',
+    '/it/swift/': [{
+      title: 'Swift',
       collapsable: false,
       displayAllHeaders: true,
       sidebarDepth: 2,
       children: [
-        { title: 'items01', path: '/foo/' },
-        { title: 'items02', path: '/foo/one' },
+        { title: 'Swift', path: '/it/swift/' },
       ],
     }],
-    '/bar/': [{
-      title: 'items03',
+    '/it/notes/': [{
+      title: '开发记录',
       collapsable: false,
       displayAllHeaders: true,
       sidebarDepth: 2,
       children: [
-        { title: 'items03', path: '/bar/' },
-        { title: 'items04', path: '/bar/three' },
+        //{ title: '开发记录', path: '/it/notes/' },
+        { title: '博客搭建', path: '/it/notes/blogs.md' },
+        { title: 'Git使用', path: '/it/notes/git.md' },
       ],
     }],
   };
+}
+
+function getNavBar() {
+  return [
+    {
+      text: '首页',
+      link: '/',
+    },
+    {
+      text: '前端',
+      items: [
+        {
+          text: '语言学习',
+          items: [
+            { text: 'Swift', link: '/it/swift/' },
+          ],
+        }, {
+          text: '其他',
+          items: [
+            { text: '开发记录', link: '/it/notes/' },
+          ],
+        },
+      ],
+    },
+  ];
 }
