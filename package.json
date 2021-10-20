@@ -18,5 +18,16 @@
     "@vuepress/plugin-back-to-top": "^1.8.2",
     "@vuepress/plugin-medium-zoom": "^1.8.2",
     "vuepress": "^1.8.2"
-  }
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samlau7245/blogs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/samlau7245/blogs/issues"
+  },
+  "homepage": "https://github.com/samlau7245/blogs#readme"
 }
