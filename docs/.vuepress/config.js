@@ -39,6 +39,7 @@ function getSider() {
       sidebarDepth: 2,
       children: [
         { title: 'Swift', path: '/it/swift/' },
+        { title: 'RxSwift', path: '/it/swift/RxSwift.md' },
       ],
     }],
     '/it/notes/': [{
@@ -46,6 +47,7 @@ function getSider() {
       collapsable: false,
       displayAllHeaders: true,
       sidebarDepth: 2,
+      //path: '/it/notes/',
       children: [
         //{ title: '开发记录', path: '/it/notes/' },
         { title: '博客搭建', path: '/it/notes/blogs.md' },
@@ -67,7 +69,7 @@ function getNavBar() {
         {
           text: '语言学习',
           items: [
-            { text: 'Swift', link: '/it/swift/' },
+            { text: 'Swift', link: '/it/swift/', },
           ],
         }, {
           text: '其他',
@@ -75,6 +77,12 @@ function getNavBar() {
             { text: '开发记录', link: '/it/notes/' },
           ],
         },
+      ],
+    },
+    {
+      text: '个人',
+      items: [
+        //{ text: '医学', link: '/personal/', },
       ],
     },
   ];
