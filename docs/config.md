@@ -13,12 +13,3 @@ Now, nine months removed from the mayhem, Republicans bound to former President 
 Even so, a reckoning is underway, as prosecutors and congressional investigators seek to understand how a political rally devolved into an assault on the citadel of American democracy and those who guard it. They are drilling down on whether the riot was organized and what roles were played by far-right extremist groups, various Trump supporters and Mr. Trump himself.
 
 But it may also help to slow down the video evidence, linger on those 90 seconds on the Capitol steps and trace back the roots of the violence and its perpetrators. Doing so provides a close-up view of how seemingly average citizens — duped by a political lie, goaded by their leaders and swept up in a frenzied throng — can unite in breathtaking acts of brutality.
-
-# Test1
-
-sss
-
-## Test2
-
-
-2222
