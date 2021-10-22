@@ -6,6 +6,9 @@ set -e
 # 生成静态文件
 npm run docs:build
 
+# 复制到本地的tomcat文件中，仅仅适用在公司电脑。
+cp -f -r docs/.vuepress/dist/ ~/tomcat/webapps/blogs
+
 # 进入生成的文件夹
 cd docs/.vuepress/dist
 
@@ -21,7 +24,5 @@ git push -f git@github.com:samlau7245/blogs.git master:gh-pages
 # git push -f https://github.com/samlau7245/Records.git master:gh-pages
 
 cd -
-
-# git@github.com:samlau7245/blogs.github.io.git
 
 # chmod 777 ./deploy.sh  #使脚本具有执行权限

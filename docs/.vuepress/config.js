@@ -2,6 +2,7 @@ module.exports = {
   title: 'Sam\'s Blog',
   description: '',
   lang: 'zh-CN',
+  port: '8085',
   // base: './', // build
 
   markdown: {
@@ -47,9 +48,7 @@ function getSider() {
       collapsable: false,
       displayAllHeaders: true,
       sidebarDepth: 2,
-      //path: '/it/notes/',
       children: [
-        //{ title: '开发记录', path: '/it/notes/' },
         { title: '博客搭建', path: '/it/notes/blogs.md' },
         { title: 'Git使用', path: '/it/notes/git.md' },
       ],
@@ -70,6 +69,7 @@ function getNavBar() {
           text: '语言学习',
           items: [
             { text: 'Swift', link: '/it/swift/', },
+            { text: 'SwiftGG', link: 'https://swiftgg.gitbook.io/swift/' },
           ],
         }, {
           text: '其他',
@@ -78,12 +78,6 @@ function getNavBar() {
           ],
         },
       ],
-    },
-    {
-      text: '个人',
-      items: [
-        //{ text: '医学', link: '/personal/', },
-      ],
-    },
+    }
   ];
 }
