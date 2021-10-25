@@ -69,6 +69,8 @@ func doRequest() {
 * Signal
 * ControlEvent
 
+[要跳转到的内容](#driver)
+
 #### Single
 
 `Single`是`Observable`的另外一个版本。
@@ -174,7 +176,7 @@ class ViewController: UIViewController {
 * 不会共享附加作用。
 * 发出一个元素。
 
-#### Driver
+#### driver
 
 `Driver` 作用是为了简化 UI 层的代码。
 
