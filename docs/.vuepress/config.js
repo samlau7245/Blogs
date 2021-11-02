@@ -40,7 +40,16 @@ function getSider() {
       sidebarDepth: 2,
       children: [
         { title: 'Swift', path: '/it/swift/' },
-        { title: 'RxSwift', path: '/it/swift/RxSwift.md' },
+        {
+          title: 'UIKit',
+          path: '/it/swift/uikit/',
+          children: [
+            { title: 'UITableView', path: '/it/swift/uikit/UITableView.md' },
+          ],
+        },
+        { title: ' Foundation', path: '/it/swift/foundation/', },
+        { title: '第三方库：RxSwift', path: '/it/swift/RxSwift.md' },
+        { title: '第三方库：SnapKit', path: '/it/swift/SnapKit.md' },
       ],
     }],
     '/it/notes/': [{
@@ -70,6 +79,7 @@ function getNavBar() {
           items: [
             { text: 'Swift', link: '/it/swift/', },
             { text: 'SwiftGG', link: 'https://swiftgg.gitbook.io/swift/' },
+            { text: 'SnapKit', link: 'http://snapkit.io/docs/' },
           ],
         }, {
           text: '其他',

@@ -1,6 +1,27 @@
 # Swift
 
-<!-- ## 通知： -->
+[[toc]]
+
+## 标注
+
+```swift
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+    func f1(){}
+    func f2(){}
+    // MARK: - 说明文字,带分割线
+    func f3(){}
+    func f4(){}
+    // MARK: 说明文字,不带分割线
+    func f5(){}
+    func f6(){}
+    // TODO: 标注TODO
+    // FIXME: 标注FIXME
+}
+```
+
+![](http://msnewlifefitness.com/img/20211102094828.png)
+
+## 通知
 
 ```swift
 class ViewController: UIViewController {
