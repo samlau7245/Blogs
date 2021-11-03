@@ -82,7 +82,7 @@ enum DataError:Error {
 }
 
 class ViewController: UIViewController {
-    var disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
 
     override func viewDidLoad() {
         self.view.backgroundColor = UIColor.white
@@ -345,25 +345,78 @@ button.rx.tap.subscribe { [weak self] in
 ```
 :::
 
-### 操作符(operator)
+### 可监听时序、观察者
 
-**操作符**可以创建新的序列，或者变化组合原有的序列，从而生成一个新的序列。
+* [PublishSubject](#publishsubject)
+* [ReplaySubject](#replaysubject)
 
-* [filter-过滤](#filter-过滤)
-* [map-转换](#map-转换)
-* [zip-配对](#zip-配对)
+#### PublishSubject
 
-#### filter-过滤
+**PublishSubject** 将对观察者发送订阅后产生的元素，而在订阅前发出的元素将不会发送给观察者。
 
-![](http://msnewlifefitness.com/img/20211101173617.png)
+:::details 点击查看代码
+```swift
+class ViewController: UIViewController {
+    let disposeBag = DisposeBag()
+    let subject = PublishSubject<String>()
+    
+    override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        
+        subject.subscribe { print("Next1:\($0)") } onError: { print("Error1:\($0)") } onCompleted: { print("Completed1") } .disposed(by: disposeBag)
+        subject.onNext("A")
+        subject.onNext("B")
+        // A、B 是在此订阅前发送的， PublishSubject 不会A、B 进行观察。
+        subject.subscribe { print("Next2:\($0)") } onError: { print("Error2:\($0)") } onCompleted: { print("Completed2") } .disposed(by: disposeBag)
+        subject.onNext("C")
+        subject.onNext("D")
+    }
+}
 
-#### map-转换
+/*
+Next1:A
+Next1:B
+Next1:C
+Next2:C
+Next1:D
+Next2:D
+*/
+```
+:::
 
-![](http://msnewlifefitness.com/img/20211101173654.png)
+#### ReplaySubject
 
-#### zip-配对
+**ReplaySubject** 将对观察者发送全部的元素，无论观察者是何时进行订阅的。
 
-![](http://msnewlifefitness.com/img/20211101173848.png)
+:::details 点击查看代码
+```swift
+class ViewController: UIViewController {
+    let disposeBag = DisposeBag()
+    // 只会将最新的 1 个元素发送给观察者
+    let subject = ReplaySubject<String>.create(bufferSize: 1)
+    
+    override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        
+        subject.subscribe { print("Next1:\($0)") } onError: { print("Error1:\($0)") } onCompleted: { print("Completed1") } .disposed(by: disposeBag)
+        subject.onNext("A")
+        subject.onNext("B")
+        subject.subscribe { print("Next2:\($0)") } onError: { print("Error2:\($0)") } onCompleted: { print("Completed2") } .disposed(by: disposeBag)
+        subject.onNext("C")
+        subject.onNext("D")
+    }
+}
+/*
+Next1:A
+Next1:B
+Next2:B
+Next1:C
+Next2:C
+Next1:D
+Next2:D
+*/
+```
+:::
 
 ### 可被清除的资源(disposable)
 
@@ -375,8 +428,8 @@ button.rx.tap.subscribe { [weak self] in
 ```swift
 /// 这个例子中 disposeBag 和 ViewController 具有相同的生命周期。
 /// 当退出页面时， ViewController 就被释放，disposeBag 也跟着被释放。
-class ViewController2: UIViewController {
-    var disposeBag = DisposeBag()
+class ViewController: UIViewController {
+    let disposeBag = DisposeBag()
     let nameTextField = UITextField()
 
     override func viewDidLoad() {
@@ -405,7 +458,6 @@ class ViewController2: UIViewController {
 * [重试(retry)](#重试-retry): 重复次数。
 * [重试-retryWhen](#重试-retrywhen): 重复时间。
 * [恢复(catchError)](#恢复-catcherror): 在错误产生时，用一个备用元素或者一组备用元素将错误替换掉。或者将错误事件替换成一个备选序列。
-* `Result`: 在错误产生时，用一个备用元素或者一组备用元素将错误替换掉。或者将错误事件替换成一个备选序列。
 
 #### 重试-retry
 
@@ -416,7 +468,7 @@ enum DataError:Error {
 }
 
 class ViewController: UIViewController {
-    var disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     var count = 1
     
     override func viewDidLoad() {
@@ -458,7 +510,7 @@ B2
 /// 当请求 JSON 失败时，等待 5 秒后重试。
 
 class ViewController: UIViewController {
-    var disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         self.view.backgroundColor = UIColor.white
@@ -492,7 +544,7 @@ class ViewController: UIViewController {
 /// 如果错误在 4 次以内时，就等待 5 秒后重试。
 
 class ViewController: UIViewController {
-    var disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         self.view.backgroundColor = UIColor.white
@@ -534,7 +586,7 @@ class ViewController: UIViewController {
 /// 先从网络获取数据，如果获取失败了，就从本地缓存获取数据
 
 class ViewController2: UIViewController {
-    var disposeBag = DisposeBag()
+    let disposeBag = DisposeBag()
     let recoverySequence = PublishSubject<String>()
     
     override func viewDidLoad() {
@@ -576,6 +628,126 @@ Local Data
 
 可供参考的资料: [How to handle errors in RxSwift](http://adamborek.com/how-to-handle-errors-in-rxswift/)
 
-## 操作符选择
+## 操作符
+
+**操作符**可以创建新的序列，或者变化组合原有的序列，从而生成一个新的序列。
 
 [操作符选择](https://beeth0ven.github.io/RxSwift-Chinese-Documentation/content/decision_tree.html)
+
+### filter-过滤
+
+![](http://msnewlifefitness.com/img/20211101173617.png)
+
+### zip-配对
+
+![](http://msnewlifefitness.com/img/20211101173848.png)
+
+### withLatestFrom
+
+将两个 [Observables](#可监听序列-observable) 最新的元素通过一个函数组合起来，当第一个 [Observable](#可监听序列-observable) 发出一个元素，就将组合后的元素发送出来。
+
+![](http://msnewlifefitness.com/img/20211103141101.png)
+
+:::details 点击查看代码
+```swift
+class ViewController: UIViewController {
+    let disposeBag = DisposeBag()
+    let subjectA = PublishSubject<String>()
+    let subjectB = PublishSubject<String>()
+    
+    override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        
+        subjectA.withLatestFrom(subjectB){(first, second) in
+            return first + second
+        }
+        .subscribe {
+            print("Subcribe:\($0)")
+        } onError: {
+            print("Error:\($0)")
+        } onCompleted: {
+            print("Completed")
+        }.disposed(by: disposeBag)
+        
+        subjectA.onNext("1")
+        subjectB.onNext("A")
+        
+        subjectA.onNext("2")
+        subjectB.onNext("B")
+        
+        subjectB.onNext("C")
+        subjectB.onNext("D")
+        
+        subjectA.onNext("3")
+        subjectA.onNext("4")
+        subjectA.onNext("5")
+    }
+}
+
+/*
+Subcribe:2A
+Subcribe:3D
+Subcribe:4D
+Subcribe:5D
+*/
+```
+:::
+
+### flatMapLatest-只接收最新的元素
+
+### map-转换
+
+**map** 通过一个转换函数，将 [Observable](#可监听序列-observable) 的每个元素转换一遍。
+
+![](http://msnewlifefitness.com/img/20211101173654.png)
+
+:::details 点击查看代码
+```swift{14,26}
+public class OperatorMapExample: UIViewController {
+    let disposeBag = DisposeBag()
+    
+    public override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        
+        let obs:Observable<Int> = Observable.create({ observer in
+            observer.onNext(1)
+            observer.onNext(2)
+            observer.onNext(3)
+            return Disposables.create()
+        })
+        
+        obs.map { $0 *  10 }
+        .subscribe { print($0) }
+        .disposed(by: disposeBag)
+    }
+}
+/*
+next(10)
+next(20)
+next(30)
+*/
+
+// 如果改代码为：
+obs.map { $0 > 1 }
+
+/* 则打印结果：
+next(false)
+next(true)
+next(true)
+*/
+```
+:::
+
+![](http://msnewlifefitness.com/img/20211103181600.png)
+
+### combineLatest-组合
+
+当多个 [Observables](#可监听序列-observable) 中任何一个发出一个元素，就发出一个元素。这个元素是由这些 [Observables](#可监听序列-observable) 中最新的元素，通过一个函数组合起来的，然后将这个组合的结果发出来。
+
+## 示例
+
+[RxExample](https://github.com/ReactiveX/RxSwift/tree/main/RxExample/RxExample/Examples)
+
+## 学习资源
+
+* [RxSwift 中文文档](https://beeth0ven.github.io/RxSwift-Chinese-Documentation/)

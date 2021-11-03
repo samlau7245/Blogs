@@ -79,7 +79,6 @@ function getNavBar() {
           items: [
             { text: 'Swift', link: '/it/swift/', },
             { text: 'SwiftGG', link: 'https://swiftgg.gitbook.io/swift/' },
-            { text: 'SnapKit', link: 'http://snapkit.io/docs/' },
           ],
         }, {
           text: '其他',

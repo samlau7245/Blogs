@@ -42,3 +42,7 @@ class ViewController: UIViewController {
 ## 零碎知识记录
 
 * [guard](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/05_control_flow#early-exit) 和`if`语句一样，不同的点是 `guard`语句总是有一个`else`从句。
+
+## 学习资源
+
+* [SwiftGG](https://swiftgg.gitbook.io/swift/)、[Swift 基础教程](https://itisjoe.gitbooks.io/swiftgo/content/ch1/ch1.html)
