@@ -7,7 +7,7 @@ set -e
 npm run docs:build
 
 # 复制到本地的tomcat文件中，仅仅适用在公司电脑。
-cp -f -r docs/.vuepress/dist/ ~/tomcat/webapps/blogs
+# cp -f -r docs/.vuepress/dist/ ~/tomcat/webapps/blogs
 
 # 进入生成的文件夹
 cd docs/.vuepress/dist
