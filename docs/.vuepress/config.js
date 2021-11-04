@@ -3,7 +3,7 @@ module.exports = {
   description: '',
   lang: 'zh-CN',
   port: '8085',
-  base: './', // build
+  //base: './', // build
 
   markdown: {
     lineNumbers: true,
