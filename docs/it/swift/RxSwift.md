@@ -4,7 +4,7 @@
 
 ## RxSwift 核心
 
-### 事件(event)
+### 事件(Event)
 
 简单的网络请求通过RxSwift来实现：
 
@@ -54,7 +54,7 @@ func doRequest() {
 
 代码中的`onNext`、`onError`、`onCompleted`，我们称这些事件为`Event`。
 
-### 可监听序列(observable)
+### 可监听序列(Observable)
 
 `可被观察的序列(Observable)`：可以帮助我们更准确的描述序列。
 
@@ -128,7 +128,7 @@ class ViewController: UIViewController {
 
 > 当网络请求操作失败了，序列就会终止。整个订阅将被取消。如果用户再次点击请求接口按钮，就无法再次发起网络请求进行更新操作了。
 
-#### single
+#### Single
 
 `Single`是`Observable`的另外一个版本。
 
@@ -181,7 +181,7 @@ json.asSingle()
 json.asMaybe()
 ```
 
-#### completable
+#### Completable
 
 `Completable`适用于那种你只关心任务是否完成，而不需要在意任务返回值的情况。
 
@@ -313,7 +313,10 @@ class ViewController: UIViewController {
 ```
 :::
 
-### 观察者(observer)
+### 观察者(Observer)
+
+* [AnyObserver](#anyobserver): 用来描叙任意一种观察者。
+* [Binder](#binder)
 
 **观察者**是用来监听事件，然后它需要这个事件做出响应。
 
@@ -344,6 +347,15 @@ button.rx.tap.subscribe { [weak self] in
 }.disposed(by: disposeBag)
 ```
 :::
+
+#### AnyObserver
+
+#### Binder
+
+**Binder**特征: 
+
+* 不会处理错误事件。一旦产生错误事件，在调试环境下将执行 `fatalError`，在发布环境下将打印错误信息。
+* 确保绑定都是在给定 [Scheduler](#调度器-schedulers) 上执行（默认 `MainScheduler`）
 
 ### 可监听时序、观察者
 
@@ -418,7 +430,7 @@ Next2:D
 ```
 :::
 
-### 可被清除的资源(disposable)
+### 可被清除的资源(Disposable)
 
 一个序列如果发出了 `error` 或者 `completed` 事件，那么所有内部资源都会被释放。如果你需要提前释放这些资源或取消订阅的话，那么你可以对返回的 **可被清除的资源（Disposable）** 调用 `dispose` 方法。
 
@@ -442,7 +454,7 @@ class ViewController: UIViewController {
 ```
 :::
 
-### 调度器(schedulers)
+### 调度器(Schedulers)
 
 **Schedulers** 是多线程模块，用于控制任务在哪个线程或队列运行。
 
@@ -451,7 +463,7 @@ class ViewController: UIViewController {
 * `ConcurrentDispatchQueueScheduler`: 抽象了并行 DispatchQueue
 * `OperationQueueScheduler`: 抽象了 NSOperationQueue
 
-### 错误处理(error handling)
+### 错误处理(Error Handling)
 
 当[可监听序列](#可监听序列-observable)里面产出了一个 `error` 事件，整个序列将被终止。错误处理机制：
 
@@ -744,9 +756,208 @@ next(true)
 
 当多个 [Observables](#可监听序列-observable) 中任何一个发出一个元素，就发出一个元素。这个元素是由这些 [Observables](#可监听序列-observable) 中最新的元素，通过一个函数组合起来的，然后将这个组合的结果发出来。
 
+:::details 点击查看代码
+```swift
+/// 需求： 当用户名、密码输入位数都大于4时，按钮才可以进行点击
+
+private let minimalUsernameLength = 5
+private let minimalPasswordLength = 5
+
+public class SimpleValidationViewController: UIViewController {
+    let disposeBag = DisposeBag()
+    
+    let usernameOutlet = UITextField()
+    let passwordOutlet = UITextField()
+    let doSomethingOutlet = UIButton()
+    
+    public override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+
+        // 用户名是否有效
+        let usernameValid = usernameOutlet.rx.text.orEmpty
+            .map { $0.count >= minimalUsernameLength }
+            .share(replay: 1, scope: .forever)
+        
+        // 密码是否有效
+        let passwordValid = passwordOutlet.rx.text.orEmpty
+            .map { $0.count >= minimalPasswordLength }
+            .share(replay: 1, scope: .forever)
+        
+        // 变量 usernameValid、passwordValid 都为 true 时， everythingValid 则为 true。
+        let everythingValid = Observable.combineLatest(usernameValid, passwordValid) { $0 && $1}.share(replay: 1, scope: .forever)
+        everythingValid.bind(to: doSomethingOutlet.rx.isEnabled).disposed(by: disposeBag)
+    }
+}    
+```
+:::
+
 ## 示例
 
 [RxExample](https://github.com/ReactiveX/RxSwift/tree/main/RxExample/RxExample/Examples)
+
+### 模拟用户登录-MVVM
+
+![](http://msnewlifefitness.com/img/IMG_2033.TRIM.gif)
+
+:::details 点击查看代码
+```swift {23-44}
+/// 当用户输入用户名时，如果用户名不足 5 个字就给出红色提示语，并且无法输入密码，当用户名符合要求时才可以输入密码。
+/// 同样的当用户输入的密码不到 5 个字时也给出红色提示语。
+/// 当用户名和密码有一个不符合要求时底部的绿色按钮不可点击，只有当用户名和密码同时有效时按钮才可点击。
+/// 当点击绿色按钮后弹出一个提示框，这个提示框只是用来做演示而已。
+
+private let minimalUsernameLength = 5
+private let minimalPasswordLength = 5
+public class SimpleValidationViewController: UIViewController {
+    let disposeBag = DisposeBag()
+    
+    let usernameOutlet = UITextField()
+    let usernameValidOutlet = UILabel()
+    
+    let passwordOutlet = UITextField()
+    let passwordValidOutlet = UILabel()
+    
+    let doSomethingOutlet = UIButton()
+    
+    public override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        layout()
+        
+        // 用户名是否有效
+        let usernameValid = usernameOutlet.rx.text.orEmpty
+            .map { $0.count >= minimalUsernameLength }
+            .share(replay: 1, scope: .forever)
+        
+        // 密码是否有效
+        let passwordValid = passwordOutlet.rx.text.orEmpty
+            .map { $0.count >= minimalPasswordLength }
+            .share(replay: 1, scope: .forever)
+        
+        // 组合 用户名、密码两个序列
+        let everythingValid = Observable.combineLatest(usernameValid, passwordValid) { $0 && $1}.share(replay: 1, scope: .forever)
+        
+        usernameValid.bind(to: passwordOutlet.rx.isEnabled).disposed(by: disposeBag)
+        usernameValid.bind(to: usernameValidOutlet.rx.isHidden).disposed(by: disposeBag)
+        
+        passwordValid.bind(to: passwordValidOutlet.rx.isHidden).disposed(by: disposeBag)
+        
+        everythingValid.bind(to: doSomethingOutlet.rx.isEnabled).disposed(by: disposeBag)
+        doSomethingOutlet.rx.tap.subscribe { [weak self] _ in
+            self?.showAlert()
+        }.disposed(by: disposeBag)
+    }
+    
+    func showAlert() {
+        let alert = UIAlertController(title: "RxExample", message: "This is Perfect!", preferredStyle: .alert)
+        let defaultAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alert.addAction(defaultAction)
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func layout() {
+        doSomethingOutlet.setTitle("Submit", for: .normal)
+        doSomethingOutlet.backgroundColor = UIColor.blue
+        
+        self.view.addSubview(usernameOutlet)
+        self.view.addSubview(usernameValidOutlet)
+        self.view.addSubview(passwordOutlet)
+        self.view.addSubview(passwordValidOutlet)
+        self.view.addSubview(doSomethingOutlet)
+        
+        usernameOutlet.placeholder = "用户名："
+        passwordOutlet.placeholder = "密码："
+        
+        usernameOutlet.borderStyle = .roundedRect
+        usernameOutlet.clearButtonMode = .whileEditing
+        usernameOutlet.keyboardType = .emailAddress
+        usernameOutlet.returnKeyType = .done
+        
+        passwordOutlet.borderStyle = .roundedRect
+        passwordOutlet.clearButtonMode = .whileEditing
+        passwordOutlet.keyboardType = .emailAddress
+        passwordOutlet.returnKeyType = .done
+        
+        usernameValidOutlet.text = "Username has to be at least \(minimalUsernameLength) characters"
+        usernameValidOutlet.textColor = UIColor.red
+
+        passwordValidOutlet.text = "Password has to be at least \(minimalPasswordLength) characters"
+        passwordValidOutlet.textColor = UIColor.red
+
+        usernameOutlet.snp.makeConstraints { make in
+            make.left.equalTo(self.view).offset(15)
+            make.right.equalTo(self.view).offset(-15)
+            make.top.equalTo(self.view).offset(100)
+        }
+        usernameValidOutlet.snp.makeConstraints { make in
+            make.left.equalTo(self.view).offset(15)
+            make.right.equalTo(self.view).offset(-15)
+            make.top.equalTo(usernameOutlet.snp_bottom).offset(5)
+        }
+        
+        passwordOutlet.snp.makeConstraints { make in
+            make.left.equalTo(self.view).offset(15)
+            make.right.equalTo(self.view).offset(-15)
+            make.top.equalTo(usernameValidOutlet.snp_bottom).offset(10)
+        }
+        passwordValidOutlet.snp.makeConstraints { make in
+            make.left.equalTo(self.view).offset(15)
+            make.right.equalTo(self.view).offset(-15)
+            make.top.equalTo(passwordOutlet.snp_bottom).offset(5)
+        }
+        
+        doSomethingOutlet.snp.makeConstraints { make in
+            make.left.equalTo(self.view).offset(15)
+            make.right.equalTo(self.view).offset(-15)
+            make.top.equalTo(passwordValidOutlet.snp_bottom).offset(10)
+        }
+    }
+}
+```
+:::
+
+通过MVVM改造后：
+
+:::details 点击查看MVVM改造后的代码
+```swift {25-26}
+class SimpleValidationViewModel {
+    // 用户名是否有效
+    let usernameValid: Observable<Bool>
+    // 密码是否有效
+    let passwordValid: Observable<Bool>
+    let everythingValid: Observable<Bool>
+    
+    // Error: Return from initializer without initializing all stored properties
+    // 这种报错需要把所有的变量都初始化。
+    init(username: Observable<String>, password: Observable<String>) {
+        usernameValid = username
+            .map { $0.count >= minimalUsernameLength }
+            .share(replay: 1, scope: .forever)
+        passwordValid = password
+            .map { $0.count >= minimalPasswordLength }
+            .share(replay: 1, scope: .forever)
+        
+        everythingValid = Observable.combineLatest(usernameValid, passwordValid) { $0 && $1}.share(replay: 1, scope: .forever)
+    }
+}
+
+public class SimpleValidationViewController: UIViewController {
+    var viewModel: SimpleValidationViewModel!
+    public override func viewDidLoad() {
+        viewModel = SimpleValidationViewModel(username: usernameOutlet.rx.text.orEmpty.asObservable(),
+                                              password: passwordOutlet.rx.text.orEmpty.asObservable())
+        viewModel.usernameValid.bind(to: passwordOutlet.rx.isEnabled).disposed(by: disposeBag)
+        viewModel.usernameValid.bind(to: usernameValidOutlet.rx.isHidden).disposed(by: disposeBag)
+        viewModel.passwordValid.bind(to: passwordValidOutlet.rx.isHidden).disposed(by: disposeBag)
+        viewModel.everythingValid.bind(to: doSomethingOutlet.rx.isEnabled).disposed(by: disposeBag)
+        doSomethingOutlet.rx.tap.subscribe { [weak self] _ in
+            self?.showAlert()
+        }.disposed(by: disposeBag)
+    }
+    //...
+}
+```
+:::
+
 
 ## 学习资源
 

@@ -23,3 +23,7 @@ func initSubViews() {
 }
 ```
 :::
+
+## 学习资源
+
+[Swift 基础教程](https://itisjoe.gitbooks.io/swiftgo/content/ch1/ch1.html)

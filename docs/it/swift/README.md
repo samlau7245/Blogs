@@ -39,6 +39,62 @@ class ViewController: UIViewController {
 }
 ```
 
+## 枚举
+
+[SwiftGG教程：枚举](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/08_enumerations)
+
+:::details 枚举、扩展 搭配使用
+```swift {30}
+enum ValidationResult {
+    case ok(message:String)
+    case empty
+    case validating
+    case failed(message:String)
+}
+
+extension ValidationResult {
+    var isValid: Bool {
+        switch self {
+        case .ok:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+/// RxSwift 使用Enum
+
+let obs: Observable<ValidationResult> = Observable.create({ oberver in
+    oberver.onNext(ValidationResult.validating)
+    oberver.onNext(ValidationResult.ok(message: "Success~~"))
+    oberver.onCompleted()
+    return Disposables.create()
+})
+
+obs.subscribe { result in
+    switch result.element {
+    case let .ok(message):
+        print(message)
+        break
+    default:
+        print("Others")
+        break
+    }
+}.disposed(by: disposeBag)
+
+/*
+Others
+Success~~
+Others
+*/
+```
+:::
+
+## 扩展
+
+[SwiftGG教程：扩展](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/20_extensions)
+
 ## 零碎知识记录
 
 * [guard](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/05_control_flow#early-exit) 和`if`语句一样，不同的点是 `guard`语句总是有一个`else`从句。

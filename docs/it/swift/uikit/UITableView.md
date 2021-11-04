@@ -57,3 +57,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 :::
 
 ![](http://msnewlifefitness.com/img/20211102101832.png)
+
+## 集错
+
+* `UITableViewCell detailTextLabel not showing up`
+
+删除：
+
+```swift
+theTableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "reuseIdentifier")
+```
+
+用以下代替：
+
+```swift
+let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "reuseIdentifier")
+```
