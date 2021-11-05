@@ -47,7 +47,7 @@ function getSider() {
             { title: 'UITableView', path: '/it/swift/uikit/UITableView.md' },
           ],
         },
-        { title: ' Foundation', path: '/it/swift/foundation/', },
+        { title: 'Foundation', path: '/it/swift/foundation/', },
         { title: '第三方库：RxSwift', path: '/it/swift/RxSwift.md' },
         { title: '第三方库：SnapKit', path: '/it/swift/SnapKit.md' },
       ],

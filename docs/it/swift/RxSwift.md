@@ -133,7 +133,7 @@ class ViewController: UIViewController {
 `Single`是`Observable`的另外一个版本。
 
 * `Single` 只能发出一个元素，或者`error`事件。
-* `Single` 不会共享附加作用。
+* `Single` [不会共享附加作用](#共享附加作用)。
 
 :::details 点击查看代码
 ```swift
@@ -187,7 +187,7 @@ json.asMaybe()
 
 * 发出零个元素
 * 发出一个 `completed` 事件或者一个 `error` 事件
-* 不会共享附加作用
+* [不会共享附加作用](#共享附加作用)
 
 :::details 点击查看代码
 ```swift
@@ -226,14 +226,14 @@ class ViewController: UIViewController {
 ```
 :::
 
-#### maybe
+#### Maybe
 
 `Maybe`: 它介于 `Single` 和 `Completable` 之间，它要么只能发出一个元素，要么产生一个 `completed` 事件，要么产生一个 `error` 事件。。
 
-* 不会共享附加作用。
+* [不会共享附加作用](#共享附加作用)。
 * 发出一个元素。
 
-#### driver
+#### Driver
 
 `Driver` 作用是为了简化 UI 层的代码。
 
@@ -241,7 +241,7 @@ class ViewController: UIViewController {
 
 * 不会产生 error 事件
 * 一定在 MainScheduler 监听（主线程监听）
-* 共享附加作用
+* [共享附加作用](#共享附加作用)。
 
 :::details 点击查看代码： 输入框和Label的联动
 ```swift
@@ -294,7 +294,7 @@ Signal 和 [Driver](#driver) 相似,唯一的区别是，Driver 会对新观察�
 
 * 不会产生 error 事件
 * 一定在 MainScheduler 监听（主线程监听）
-* 共享附加作用
+* [共享附加作用](#共享附加作用)
 
 :::details 点击查看代码
 ```swift
@@ -314,9 +314,6 @@ class ViewController: UIViewController {
 :::
 
 ### 观察者(Observer)
-
-* [AnyObserver](#anyobserver): 用来描叙任意一种观察者。
-* [Binder](#binder)
 
 **观察者**是用来监听事件，然后它需要这个事件做出响应。
 
@@ -348,14 +345,53 @@ button.rx.tap.subscribe { [weak self] in
 ```
 :::
 
-#### AnyObserver
+#### AnyObserver、Binder
 
-#### Binder
+* AnyObserver: 用来描叙任意一种观察者。
+* Binder：特征:
+    * 不会处理错误事件。一旦产生错误事件，在调试环境下将执行 `fatalError`，在发布环境下将打印错误信息。
+    * 确保绑定都是在给定 [Scheduler](#调度器-schedulers) 上执行（默认 `MainScheduler`）
 
-**Binder**特征: 
+:::details 点击查看代码
+```swift
+let usernameOutlet = UITextField()
+let usernameValidOutlet = UILabel()
+func bind_demo() {
+    let usernameValid = usernameOutlet.rx.text.orEmpty.map { $0.count >= 5 }.share(replay: 1, scope: .forever)
+    
+    usernameValid.bind(to: usernameValidOutlet.rx.isHidden).disposed(by: disposeBag)
 
-* 不会处理错误事件。一旦产生错误事件，在调试环境下将执行 `fatalError`，在发布环境下将打印错误信息。
-* 确保绑定都是在给定 [Scheduler](#调度器-schedulers) 上执行（默认 `MainScheduler`）
+    /// 等价于
+    let obs: AnyObserver<Bool> = AnyObserver { [weak self] (event) in
+        switch event {
+        case .next(let isHidden):
+            self?.usernameValidOutlet.isEnabled = isHidden
+        default:
+            break
+        }
+    }
+    usernameValid.bind(to: obs).disposed(by: disposeBag)
+    
+    /// 等价于
+    let bind: Binder<Bool> = Binder(usernameValidOutlet) { (view, isHidden) in
+        view.isEnabled = isHidden
+    }
+    usernameValid.bind(to: bind).disposed(by: disposeBag)
+}
+```
+:::
+
+其中 Bind 的 `usernameValidOutlet.rx.isHidden`实现逻辑：
+
+```swift
+extension Reactive where Base: UIView {
+    public var isHidden: Binder<Bool> {
+        return Binder(self.base) { (view, isHidden) in
+            view.isHidden = isHidden
+        }
+    }
+}
+```
 
 ### 可监听时序、观察者
 
@@ -705,6 +741,10 @@ Subcribe:5D
 ```
 :::
 
+* 案例：用户名(TextField)和密码(TextField)与登录(Button)结合。
+
+
+
 ### flatMapLatest-只接收最新的元素
 
 ### map-转换
@@ -958,6 +998,140 @@ public class SimpleValidationViewController: UIViewController {
 ```
 :::
 
+## 共享附加作用
+
+* 共享附加作用: [Driver](#driver)、[Signal](#signal)、ControlEvent...
+* 不共享附加作用: [Single](#single)、[Completable](#completable)、[Maybe](#maybe)...
+
+:::details 示例： 不共享附加作用
+```swift {6}
+let obs = Observable<String>.create { observer in
+    print("Request Started")
+    observer.onNext("Request Completed")
+    observer.onCompleted()
+    return Disposables.create()
+}.asSingle()
+
+obs.subscribe { print("First Subscribe:\($0)") }.disposed(by: disposeBag)
+obs.subscribe { print("Second Subscribe:\($0)") }.disposed(by: disposeBag) // 第二次订阅
+
+/*
+Request Started
+First Subscribe:success("Request Completed")
+Request Started
+Second Subscribe:success("Request Completed")
+*/
+```
+:::
+
+> 如果一个序列**不共享附加作用**，那在第二次订阅时，会重新发起网络请求，而不是共享第一次网络请求（附加作用）。
+
+:::details 示例： 共享附加作用
+```swift {6}
+let obs = Observable<String>.create { observer in
+    print("Request Started")
+    observer.onNext("Request Completed")
+    observer.onCompleted()
+    return Disposables.create()
+}.share(replay: 1, scope: .forever)
+
+obs.subscribe { print("First Subscribe:\($0)") }.disposed(by: disposeBag)
+obs.subscribe { print("Second Subscribe:\($0)") }.disposed(by: disposeBag) // 第二次订阅
+
+/*
+Request Started
+First Subscribe:next(Request Completed)
+First Subscribe:completed
+Second Subscribe:next(Request Completed)
+Second Subscribe:completed
+*/
+```
+:::
+
+> 如果一个序列**共享附加作用**，那在第二次订阅时，不会重新发起网络请求，而是共享第一次网络请求（附加作用）。
+
+通过用户输入来展示**共享附加作用**： 
+
+:::details 共享附加作用 
+```swift {19}
+/// 输入框输入： 12345，查看在 共享附加作用和 不共享附加作用，这两种情况的数据日志。
+
+public class ShareController: UIViewController {
+    let disposeBag = DisposeBag()
+    
+    let usernameOutlet = UITextField()
+    let usernameValidOutlet = UILabel()
+    let doSomethingOutlet = UIButton()
+    
+    public override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        
+        // 用户名是否有效
+        let usernameValid = usernameOutlet.rx.text.orEmpty
+            .map({ (text) -> Bool in
+                print("Map:\(text)")
+                return text.count >= 5
+            })
+            .share(replay: 1, scope: .forever)
+        
+        usernameValid.bind(to: usernameValidOutlet.rx.isHidden).disposed(by: disposeBag)
+        usernameValid.bind(to: doSomethingOutlet.rx.isEnabled).disposed(by: disposeBag) // 第二次订阅
+    }
+}
+
+/*
+Map:1
+Map:12
+Map:123
+Map:1234
+Map:12345
+*/
+```
+:::
+
+如果修改成为**不共享附加作用**
+
+:::details 共享附加作用 
+```swift {19}
+/// 输入框输入： 12345，查看在 共享附加作用和 不共享附加作用，这两种情况的数据日志。
+
+public class ShareController: UIViewController {
+    let disposeBag = DisposeBag()
+    
+    let usernameOutlet = UITextField()
+    let usernameValidOutlet = UILabel()
+    let doSomethingOutlet = UIButton()
+    
+    public override func viewDidLoad() {
+        self.view.backgroundColor = UIColor.white
+        
+        // 用户名是否有效
+        let usernameValid = usernameOutlet.rx.text.orEmpty
+            .map({ (text) -> Bool in
+                print("Map:\(text)")
+                return text.count >= 5
+            })
+            //.share(replay: 1, scope: .forever)
+        
+        usernameValid.bind(to: usernameValidOutlet.rx.isHidden).disposed(by: disposeBag)
+        usernameValid.bind(to: doSomethingOutlet.rx.isEnabled).disposed(by: disposeBag) // 第二次订阅
+    }
+}
+
+/*
+Map:1
+Map:1
+Map:12
+Map:12
+Map:123
+Map:123
+Map:1234
+Map:1234
+Map:12345
+Map:12345
+*/
+```
+:::
 
 ## 学习资源
 

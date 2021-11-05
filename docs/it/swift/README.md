@@ -91,6 +91,51 @@ Others
 ```
 :::
 
+:::details RxSwift挂钩 枚举、扩展
+```swift
+struct ValidationColors {
+    static let okColor = UIColor(red: 138.0 / 255.0, green: 221.0 / 255.0, blue: 109.0 / 255.0, alpha: 1.0)
+    static let errorColor = UIColor.red
+}
+
+extension ValidationResult {
+    var textColor: UIColor {
+        switch self {
+        case .ok:
+            return ValidationColors.okColor
+        case .empty:
+            return UIColor.black
+        case .validating:
+            return UIColor.black
+        default:
+            return ValidationColors.errorColor
+        }
+    }
+    var description: String {
+        switch self {
+        case let .ok(message):
+            return message
+        case .validating:
+            return "validating..."
+        case let .failed(message):
+            return message
+        default:
+            return ""
+        }
+    }
+}
+
+extension Reactive where Base: UILabel {
+    var validationResult: Binder<ValidationResult> {
+        return Binder(self.base) { (label, result) in
+            label.textColor = result.textColor
+            label.text = result.description
+        }
+    }
+}
+```
+:::
+
 ## 扩展
 
 [SwiftGG教程：扩展](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/20_extensions)
@@ -98,6 +143,56 @@ Others
 ## 零碎知识记录
 
 * [guard](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/05_control_flow#early-exit) 和`if`语句一样，不同的点是 `guard`语句总是有一个`else`从句。
+
+### 单例
+
+:::details 点击查看代码
+```swift {4,13,24-35}
+/// 全局变量
+/// let sharedNetworkManager = NetworkManager(baseURL: API.baseURL)
+class NetworkManager {
+    let baseURL: URL
+    init(baseURL: URL) {
+        self.baseURL = baseURL
+    }
+}
+
+/// 静态变量
+/// NetworkManager.shared
+class NetworkManager {
+    static let shared = NetworkManager(baseURL: API.baseURL)
+
+    let baseURL: URL
+    init(baseURL: URL) {
+        self.baseURL = baseURL
+    }
+}
+
+/// 单例
+/// NetworkManager.shared()
+class NetworkManager {
+    class func shared() -> NetworkManager {
+        return sharedNetworkManager
+    }
+
+    private static var sharedNetworkManager: NetworkManager = {
+        let networkManager = NetworkManager(baseURL: API.baseURL)
+
+        // Configuration
+        // ...
+
+        return networkManager
+    }()
+
+    static let shared = NetworkManager(baseURL: API.baseURL)
+
+    let baseURL: URL
+    init(baseURL: URL) {
+        self.baseURL = baseURL
+    }
+}
+```
+:::
 
 ## 学习资源
 
