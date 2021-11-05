@@ -3,7 +3,11 @@ module.exports = {
   description: '',
   lang: 'zh-CN',
   port: '8085',
+<<<<<<< HEAD
   //base: './', // build
+=======
+  // base: './', // build
+>>>>>>> ab01935d7e7120484d8d07f7cb0fafec7bd51c97
 
   markdown: {
     lineNumbers: true,
@@ -47,7 +51,7 @@ function getSider() {
             { title: 'UITableView', path: '/it/swift/uikit/UITableView.md' },
           ],
         },
-        { title: ' Foundation', path: '/it/swift/foundation/', },
+        { title: 'Foundation', path: '/it/swift/foundation/', },
         { title: '第三方库：RxSwift', path: '/it/swift/RxSwift.md' },
         { title: '第三方库：SnapKit', path: '/it/swift/SnapKit.md' },
       ],
