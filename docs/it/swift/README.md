@@ -136,6 +136,52 @@ extension Reactive where Base: UILabel {
 ```
 :::
 
+## 构造器
+
+[构造过程](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/14_initialization)
+
+### 类的继承和构造过程
+
+:::details 点击查看代码
+```swift {9}
+public class RACommandViewModel: NSObject {
+    public var name: String!
+    
+    public override init() {
+        super.init()
+        self.name = ""
+    }
+    
+    public required init(name: String) {
+        super.init()
+        if name.isEmpty {
+            self.name = ""
+        } else {
+            self.name = name
+        }
+    }
+}
+
+/// let vm = RACommandViewModel(name: "ABC")
+```
+:::
+
+:::details 使用 convenience 关键字进行构造
+```swift {4}
+public class RACommandViewModel: NSObject {
+    public var name: String!
+    
+    convenience public init(name: String) {
+        self.init()
+        self.name = name
+    }
+}
+
+/// let vm = RACommandViewModel(name: "ABC")
+```
+:::
+
+
 ## 扩展
 
 [SwiftGG教程：扩展](https://swiftgg.gitbook.io/swift/swift-jiao-cheng/20_extensions)
