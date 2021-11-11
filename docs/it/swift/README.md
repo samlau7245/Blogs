@@ -80,6 +80,21 @@ public class Cls2Useage {
                 }
             }
         }
+
+        let mixed:[Any] = ["A","A"]
+        if let first = mixed.first as? String, let second =  mixed.last as? String, first == second {
+            print("\(first)---\(second)")
+        } else {
+            print("Error")
+        }
+        // 运行结果： A---A
+        
+        guard let first = mixed.first as? String, let second =  mixed.last as? String, first == second else {
+            print("Error")
+            return
+        } 
+        print("\(first)---\(second)")  
+        // 运行结果： A---A
     }
 }
 ```
@@ -160,7 +175,290 @@ class Useage {
 
 ### 用可选链式调用定义模型类
 
+:::details 点击查看代码
+```swift {37}
+class Person {
+    var residence: Residence?
+}
+
+class Residence {
+    var rooms: [Room] = []
+    var numberOfRooms: Int {
+        return rooms.count
+    }
+    subscript(i: Int) -> Room {
+        get {
+            return rooms[i]
+        }
+        set {
+            rooms[i] = newValue
+        }
+    }
+    func printNumberOfRooms() {
+        print("The number of rooms is \(numberOfRooms)")
+    }
+    var address: Address?
+}
+
+class Room {
+    let name: String
+    init(name: String) { self.name = name }
+}
+
+class Address {
+    var buildingName: String?
+    var buildingNumber: String?
+    var street: String?
+    
+    func buildingIdentifier() -> String? {
+        if buildingName != nil {
+            return buildingName
+        } else if let buildingNumber = buildingNumber, let street = street { // 如果 buildingNumber 和 street 均有值，则返回两者拼接得到的字符串。否则，返回 nil。
+            return "\(buildingNumber) \(street)"
+        } else {
+            return nil
+        }
+    }
+}
+```
+:::
+
+### 用可选链式调用访问属性、方法、下标
+
+:::details 点击查看代码
+```swift
+/// 通过可选链式调用 访问属性
+func invokeProperty() {
+    let john = Person()
+    if let roomCount = john.residence?.numberOfRooms {
+        print("John's residence has \(roomCount) room(s).")
+    } else {
+        print("Unable to retrieve the number of rooms.")
+    }
+    // 运行结果： Unable to retrieve the number of rooms.
+}
+
+/// 通过可选链式调用 访问方法
+func invokeFunction() {
+    let john = Person()
+    // 返回类型会是 Void?，而不是 Void。判断返回值是否为 nil 可以判断调用是否成功
+    if john.residence?.printNumberOfRooms() != nil {
+        print("It was possible to print the number of rooms.")
+    } else {
+        print("It was not possible to print the number of rooms.")
+    }
+    // 运行结果： It was not possible to print the number of rooms.
+}
+
+/// 通过可选链式调用 访问下标
+func invokeIndex() {
+    let john = Person()
+    if let firstRoomName = john.residence?.rooms[0].name {
+        print("The first room name is \(firstRoomName).")
+    } else {
+        print("Unable to retrieve the first room name.")
+    }
+    // 运行结果： Unable to retrieve the first room name.
+    
+    let johnsHouse = Residence()
+    johnsHouse.rooms.append(Room(name: "Living Room"))
+    johnsHouse.rooms.append(Room(name: "Kitchen"))
+    john.residence = johnsHouse
+    
+    if let firstRoomName = john.residence?.rooms[0].name {
+        print("The first room name is \(firstRoomName).")
+    } else {
+        print("Unable to retrieve the first room name.")
+    }
+    // 运行结果： The first room name is Living Room.
+    
+    var testScores = ["Dave": [86, 82, 84], "Bev": [79, 94, 81]]
+    testScores["Dave"]?[0] = 91
+    print(testScores)
+    // 运行结果：["Dave": [91, 82, 84], "Bev": [79, 94, 81]]
+}
+```
+:::
+
+
 ## 类型转换
+
+* `类型检查操作符(is)`: 检查一个实例是否属于特定子类型。
+
+:::details 点击查看代码
+```swift {35,38}
+class MediaItem {
+    var name: String
+    init(name: String) {
+        self.name = name
+    }
+}
+class Movie: MediaItem {
+    var director: String
+    init(name: String, director: String) {
+        self.director = director
+        super.init(name: name)
+    }
+}
+
+class Song: MediaItem {
+    var artist: String
+    init(name: String, artist: String) {
+        self.artist = artist
+        super.init(name: name)
+    }
+}
+
+class MediaItemUseage {
+    init() {
+        let library = [
+            Movie(name: "Casablanca", director: "Michael Curtiz"),
+            Song(name: "Blue Suede Shoes", artist: "Elvis Presley"),
+            Movie(name: "Citizen Kane", director: "Orson Welles"),
+            Song(name: "The One And Only", artist: "Chesney Hawkes"),
+            Song(name: "Never Gonna Give You Up", artist: "Rick Astley")
+        ]
+        
+        var movieCount = 0
+        var songCount = 0
+        for item in library {
+            if item is Movie {
+                movieCount += 1
+            } else if item is Song {
+                songCount += 1
+            }
+        }
+    }
+    
+}
+```
+:::
+
+**向下转型**
+
+* `类型转换操作符(as?)`: 返回一个你试图向下转成的类型的**可选值**。
+* `类型转换操作符(as!)`: 可以确定向下转型一定会成功时，才使用`强制形式（as!）`。当你试图向下转型为一个不正确的类型时，强制形式的类型转换会触发一个运行时错误。
+
+:::details 点击查看代码
+```swift {2,4}
+for item in library {
+    if let movie = item as? Movie {
+        print("Movie: \(movie.name), dir. \(movie.director)")
+    } else if let song = item as? Song { // 尝试将 item 转为 Movie 类型。若成功，设置一个新的临时常量 movie 来存储返回的可选 Movie 中的值
+        print("Song: \(song.name), by \(song.artist)")
+    }
+}
+/*
+ Movie: Casablanca, dir. Michael Curtiz
+ Song: Blue Suede Shoes, by Elvis Presley
+ Movie: Citizen Kane, dir. Orson Welles
+ Song: The One And Only, by Chesney Hawkes
+ Song: Never Gonna Give You Up, by Rick Astley
+ */
+``` 
+:::
+
+* `Any`: 可以表示任何类型，包括函数类型。
+* `AnyObject`: 可以表示任何类类型的实例。
+
+:::details 点击查看代码
+```swift {13,15,17,19,21,23,25,27,29}
+var things: [Any] = []
+things.append(0)
+things.append(0.0)
+things.append(42)
+things.append(3.14159)
+things.append("hello")
+things.append((3.0, 5.0))
+things.append(Movie(name: "Ghostbusters", director: "Ivan Reitman"))
+things.append({ (name: String) -> String in "Hello, \(name)" })
+
+for item in things {
+    switch item {
+    case 0 as Int:
+        print("zero as an Int")
+    case 0 as Double:
+        print("zero as an Double")
+    case let someInt as Int:
+        print("an integer value of \(someInt)")
+    case let someDouble as Double where someDouble > 0.0 :
+        print("a positive double value of \(someDouble)")
+    case is Double:
+        print("some other double value that I don't want to print")
+    case let someString as String:
+        print("a string value of \"\(someString)\"")
+    case let (x, y) as (Double, Double):
+        print("an (x, y) point at \(x), \(y)")
+    case let movie as Movie:
+            print("a movie called \(movie.name), dir. \(movie.director)")
+    case let stringConverter as (String) -> String:
+            print(stringConverter("Michael"))
+    default:
+        print("something else")
+    }
+}
+/* 运行结果：
+ zero as an Int
+ zero as an Double
+ an integer value of 42
+ a positive double value of 3.14159
+ a string value of "hello"
+ an (x, y) point at 3.0, 5.0
+ a movie called Ghostbusters, dir. Ivan Reitman
+ Hello, Michael
+ */
+```
+:::
+
+## 类型
+
+* **类型标识符**: 可以引用命名型类型
+    * 类型一： 使用`typealias`。
+    * 类型二： 使用点语法`.`来表示。
+
+```swift
+typealias Point = (Int, Int)
+let origin: Point = (0, 0)
+```
+
+* **元组类型**: 使用括号括起来的零个或多个类型，类型间用逗号隔开。
+
+```swift
+typealias DemoInset = (left: Double, top: Double, bottom: Double, right: Double)
+let inset: DemoInset = (1,2,3,4)
+```
+
+* **数组类型**: `Array<Element>`，或者使用糖语法 `[类型]`。
+
+```swift
+let someArray: Array<String> = ["Alex", "Brian", "Dave"]
+let someArray: [String] = ["Alex", "Brian", "Dave"]
+
+var array3D: [[[Int]]] = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+print(array3D[0][1]) // [3, 4]
+print(array3D[0][1][1]) // 4
+```
+
+* **字典类型**: `Dictionary<Key, Value>`，或者使用糖语法 `[键类型 : 值类型]`。
+
+```swift
+let someDictionary: [String: Int] = ["Alex": 31, "Paul": 39]
+let someDictionary: Dictionary<String, Int> = ["Alex": 31, "Paul": 39]
+```
+
+> 通过下标访问会获取对应值的可选类型。如果键在字典中不存在的话，则这个下标返回 `nil`。
+
+* **可选类型**: 
+
+```swift
+var optionalInteger: Int? // 可选整型类型
+var optionalInteger: Optional<Int> // 可选整型类型
+
+let implicitlyUnwrappedArray: [Int]?
+let implicitlyUnwrappedTuple: (Int, Int)?
+```
+
+> 如果你在声明可选变量或属性的时候没有提供初始值，它的值则会自动赋为默认值 `nil`。
 
 ## 标注
 
