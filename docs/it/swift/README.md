@@ -2,6 +2,16 @@
 
 [[toc]]
 
+## 混编
+
+* 在 OBJC中调用Swift中的文件
+
+```objc
+/// Swift所在模块-Swift.h
+#import <SEGMenberPoints-Swift.h>
+```
+
+
 ## 系统版本选择
 
 ```swift
